@@ -100,7 +100,7 @@ export default function HeroUI() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 2.5, duration: 0.8 }}
-            className="flex flex-wrap items-center justify-center gap-3 mt-12"
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-8 sm:mt-12 px-4"
           >
             {[
               'Photorealistic 3D',
@@ -114,7 +114,7 @@ export default function HeroUI() {
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 2.7 + index * 0.1 }}
-                className="glass-dark px-4 py-2 rounded-full text-sm font-medium"
+                className="glass-dark px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium will-change-transform"
               >
                 {feature}
               </motion.div>
@@ -130,9 +130,9 @@ export default function HeroUI() {
         transition={{ delay: 3, duration: 0.8 }}
         className="absolute bottom-6 left-6 right-6 z-20"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
           {/* Camera Controls */}
-          <div className="glass-dark p-3 rounded-full space-x-2 flex items-center">
+          <div className="glass-dark p-2 sm:p-3 rounded-full space-x-2 flex items-center">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -157,9 +157,9 @@ export default function HeroUI() {
           </div>
 
           {/* Time Controls */}
-          <div className="glass-dark p-3 rounded-full">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium">
+          <div className="glass-dark p-2 sm:p-3 rounded-full">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
                 {String(Math.floor(timeOfDay)).padStart(2, '0')}:{String(Math.floor((timeOfDay % 1) * 60)).padStart(2, '0')}
               </span>
               <div className="flex items-center space-x-2">
@@ -167,10 +167,12 @@ export default function HeroUI() {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setTimeOfDay(12)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-yellow-400"
                   title="Noon"
                 >
-                  ☀️
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06L5.106 17.834a.75.75 0 001.06 1.06l1.592-1.591zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.592a.75.75 0 00-1.061 1.061l1.59 1.591z"/>
+                  </svg>
                 </motion.button>
                 <input
                   type="range"
@@ -179,21 +181,23 @@ export default function HeroUI() {
                   step="0.5"
                   value={timeOfDay}
                   onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
-                  className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                  className="w-16 sm:w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
                 />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setTimeOfDay(0)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-blue-300"
                   title="Midnight"
                 >
-                  🌙
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z"/>
+                  </svg>
                 </motion.button>
               </div>
               
-              {/* Weather Controls */}
-              <div className="flex items-center space-x-2 ml-4">
+                  {/* Weather Controls */}
+              <div className="hidden sm:flex items-center space-x-2 ml-4">
                 <span className="text-sm font-medium">Weather:</span>
                 <select
                   value={weatherCondition}
@@ -220,7 +224,7 @@ export default function HeroUI() {
           opacity: isMenuOpen ? 1 : 0 
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="absolute top-0 right-0 h-full w-80 z-30"
+        className="absolute top-0 right-0 h-full w-72 sm:w-80 z-30"
       >
         <div className="glass-dark h-full p-6 space-y-6">
           <div className="flex items-center justify-between">
