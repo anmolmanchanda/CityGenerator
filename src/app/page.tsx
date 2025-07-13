@@ -21,22 +21,14 @@ const PostProcessingControls = dynamic(() => import('@/components/PostProcessing
 })
 
 interface PostProcessingSettings {
-  ssao: boolean
-  depthOfField: boolean
-  bloom: boolean
-  chromaticAberration: boolean
-  vignette: boolean
-  colorGrading: boolean
+  enabled: boolean
+  quality: 'low' | 'medium' | 'high' | 'ultra'
 }
 
 export default function Home() {
   const [postProcessingSettings, setPostProcessingSettings] = useState<PostProcessingSettings>({
-    ssao: true,
-    depthOfField: true,
-    bloom: true,
-    chromaticAberration: true,
-    vignette: true,
-    colorGrading: true
+    enabled: true,
+    quality: 'high'
   })
 
   return (

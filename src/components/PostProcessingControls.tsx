@@ -4,12 +4,8 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 
 interface PostProcessingSettings {
-  ssao: boolean
-  depthOfField: boolean
-  bloom: boolean
-  chromaticAberration: boolean
-  vignette: boolean
-  colorGrading: boolean
+  enabled: boolean
+  quality: 'low' | 'medium' | 'high' | 'ultra'
 }
 
 interface PostProcessingControlsProps {
@@ -19,59 +15,43 @@ interface PostProcessingControlsProps {
 export default function PostProcessingControls({ onSettingsChange }: PostProcessingControlsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [settings, setSettings] = useState<PostProcessingSettings>({
-    ssao: true,
-    depthOfField: true,
-    bloom: true,
-    chromaticAberration: true,
-    vignette: true,
-    colorGrading: true
+    enabled: true,
+    quality: 'high'
   })
 
-  const handleToggle = (key: keyof PostProcessingSettings) => {
-    const newSettings = { ...settings, [key]: !settings[key] }
+  const handleQualityChange = (quality: PostProcessingSettings['quality']) => {
+    const newSettings = { ...settings, quality }
     setSettings(newSettings)
     onSettingsChange(newSettings)
   }
 
-  const presets = {
-    Ultra: {
-      ssao: true,
-      depthOfField: true,
-      bloom: true,
-      chromaticAberration: true,
-      vignette: true,
-      colorGrading: true
+  const toggleEnabled = () => {
+    const newSettings = { ...settings, enabled: !settings.enabled }
+    setSettings(newSettings)
+    onSettingsChange(newSettings)
+  }
+
+  const qualityPresets = {
+    'Low': {
+      quality: 'low' as const,
+      description: 'Basic effects, 60+ FPS',
+      features: ['Basic bloom', 'Simple grain', 'Anti-aliasing']
     },
-    High: {
-      ssao: true,
-      depthOfField: false,
-      bloom: true,
-      chromaticAberration: true,
-      vignette: true,
-      colorGrading: true
+    'Medium': {
+      quality: 'medium' as const,
+      description: 'Balanced quality, 45-60 FPS',
+      features: ['Enhanced SSAO', 'Depth of field', 'Color grading']
     },
-    Medium: {
-      ssao: false,
-      depthOfField: false,
-      bloom: true,
-      chromaticAberration: false,
-      vignette: true,
-      colorGrading: false
+    'High': {
+      quality: 'high' as const,
+      description: 'Cinematic quality, 30-45 FPS',
+      features: ['All effects', 'High-res bloom', 'Film grain']
     },
-    Low: {
-      ssao: false,
-      depthOfField: false,
-      bloom: false,
-      chromaticAberration: false,
-      vignette: false,
-      colorGrading: false
+    'Ultra': {
+      quality: 'ultra' as const,
+      description: 'Maximum quality, 20-30 FPS',
+      features: ['SSR reflections', 'Motion blur', 'Ultra sampling']
     }
-  }
-
-  const applyPreset = (preset: keyof typeof presets) => {
-    const newSettings = presets[preset]
-    setSettings(newSettings)
-    onSettingsChange(newSettings)
   }
 
   return (
@@ -108,59 +88,82 @@ export default function PostProcessingControls({ onSettingsChange }: PostProcess
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-white/10 p-4 space-y-4 w-64"
+            className="border-t border-white/10 p-4 space-y-4 w-72"
           >
-            {/* Quality Presets */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Quality Presets</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {Object.keys(presets).map((preset) => (
-                  <motion.button
-                    key={preset}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => applyPreset(preset as keyof typeof presets)}
-                    className="px-3 py-1 text-xs bg-white/10 rounded hover:bg-white/20 transition-colors"
-                  >
-                    {preset}
-                  </motion.button>
-                ))}
-              </div>
+            {/* Master Toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold">Post-Processing</span>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={toggleEnabled}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  settings.enabled ? 'bg-blue-500' : 'bg-gray-600'
+                }`}
+              >
+                <motion.div
+                  animate={{ x: settings.enabled ? 24 : 2 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  className="w-5 h-5 bg-white rounded-full"
+                />
+              </motion.button>
             </div>
 
-            {/* Individual Controls */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Effects</h3>
-              <div className="space-y-2">
-                {Object.entries(settings).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <span className="text-xs capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleToggle(key as keyof PostProcessingSettings)}
-                      className={`w-8 h-4 rounded-full transition-colors ${
-                        value ? 'bg-blue-500' : 'bg-gray-600'
-                      }`}
-                    >
-                      <motion.div
-                        animate={{ x: value ? 16 : 2 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="w-3 h-3 bg-white rounded-full"
-                      />
-                    </motion.button>
+            {settings.enabled && (
+              <>
+                {/* Quality Presets */}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Cinematic Quality</h3>
+                  <div className="space-y-3">
+                    {Object.entries(qualityPresets).map(([name, preset]) => (
+                      <motion.button
+                        key={name}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleQualityChange(preset.quality)}
+                        className={`w-full p-3 rounded-lg text-left transition-all ${
+                          settings.quality === preset.quality
+                            ? 'bg-blue-500/20 border border-blue-400/50'
+                            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{name}</span>
+                          {settings.quality === preset.quality && (
+                            <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400 mb-2">
+                          {preset.description}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {preset.features.map((feature) => (
+                            <span
+                              key={feature}
+                              className="px-2 py-0.5 text-xs bg-white/10 rounded-full"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </motion.button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Performance Info */}
-            <div className="text-xs text-gray-400 space-y-1">
-              <div>Effects impact performance</div>
-              <div>Lower settings = higher FPS</div>
-            </div>
+                {/* Performance Info */}
+                <div className="text-xs text-gray-400 space-y-1 border-t border-white/10 pt-3">
+                  <div className="font-medium">Effects included:</div>
+                  <div>• SSAO & Enhanced Lighting</div>
+                  <div>• Depth of Field & Bloom</div>
+                  <div>• Film Grain & Color Grading</div>
+                  <div>• Chromatic Aberration & Vignette</div>
+                  {settings.quality === 'ultra' && (
+                    <div className="text-blue-400">• SSR Reflections & Motion Blur</div>
+                  )}
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </div>

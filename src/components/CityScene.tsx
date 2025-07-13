@@ -10,29 +10,22 @@ import {
   Stats,
   Sky
 } from '@react-three/drei'
-import { 
-  EffectComposer, 
-  Bloom, 
-  ToneMapping, 
-  Vignette, 
-  DepthOfField,
-  ChromaticAberration,
-  ColorAverage,
-  SSAO,
-  Outline
-} from '@react-three/postprocessing'
-import { ToneMappingMode, BlendFunction } from 'postprocessing'
+import CinematicPostProcessing, { POST_PROCESSING_PRESETS } from './CinematicPostProcessing'
+import AtmosphericEffects from './AtmosphericEffects'
 import VancouverCity from './city/VancouverCity'
 import CinematicCamera from './city/CinematicCamera'
 import DynamicLighting from './city/DynamicLighting'
 
 interface PostProcessingSettings {
-  ssao: boolean
-  depthOfField: boolean
-  bloom: boolean
-  chromaticAberration: boolean
-  vignette: boolean
-  colorGrading: boolean
+  enabled: boolean
+  quality: 'low' | 'medium' | 'high' | 'ultra'
+  // Legacy support for existing controls
+  ssao?: boolean
+  depthOfField?: boolean
+  bloom?: boolean
+  chromaticAberration?: boolean
+  vignette?: boolean
+  colorGrading?: boolean
 }
 
 interface CitySceneProps {
@@ -41,12 +34,8 @@ interface CitySceneProps {
 
 export default function CityScene({ 
   postProcessingSettings = {
-    ssao: true,
-    depthOfField: true,
-    bloom: true,
-    chromaticAberration: true,
-    vignette: true,
-    colorGrading: true
+    enabled: true,
+    quality: 'high'
   } 
 }: CitySceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -166,71 +155,24 @@ export default function CityScene({
         <VancouverCity />
       </Suspense>
 
+      {/* Atmospheric Effects - Volumetric fog, particles, cloud shadows */}
+      <Suspense fallback={null}>
+        <AtmosphericEffects 
+          enabled={postProcessingSettings.enabled}
+          intensity={postProcessingSettings.quality === 'ultra' ? 1.5 : 
+                    postProcessingSettings.quality === 'high' ? 1.0 : 
+                    postProcessingSettings.quality === 'medium' ? 0.7 : 0.4}
+        />
+      </Suspense>
+
       {/* Environment */}
       <Environment preset="city" background={false} />
 
-      {/* Post-processing Effects */}
-      <EffectComposer multisampling={2} enableNormalPass>
-        <>
-          {/* Screen Space Ambient Occlusion for depth - reduced quality for better performance */}
-          {postProcessingSettings.ssao && (
-            <SSAO
-              samples={8}
-              radius={0.08}
-              intensity={0.8}
-              bias={0.025}
-              blendFunction={BlendFunction.MULTIPLY}
-            />
-          )}
-          
-          {/* Depth of Field for cinematic focus */}
-          {postProcessingSettings.depthOfField && (
-            <DepthOfField
-              focusDistance={0.02}
-              focalLength={0.05}
-              bokehScale={2}
-              height={400}
-            />
-          )}
-          
-          {/* Enhanced Bloom for glowing lights - reduced quality for better performance */}
-          {postProcessingSettings.bloom && (
-            <Bloom 
-              intensity={1.0} 
-              luminanceThreshold={0.9} 
-              luminanceSmoothing={0.3}
-              height={200}
-            />
-          )}
-          
-          {/* Subtle Chromatic Aberration for lens effect */}
-          {postProcessingSettings.chromaticAberration && (
-            <ChromaticAberration
-              offset={[0.0015, 0.0015]}
-            />
-          )}
-          
-          {/* Cinematic Tone Mapping - always enabled for proper exposure */}
-          <ToneMapping 
-            mode={ToneMappingMode.ACES_FILMIC}
-          />
-          
-          {/* Subtle Vignette */}
-          {postProcessingSettings.vignette && (
-            <Vignette 
-              offset={0.3} 
-              darkness={0.4}
-            />
-          )}
-          
-          {/* Color grading for cinematic look */}
-          {postProcessingSettings.colorGrading && (
-            <ColorAverage
-              blendFunction={BlendFunction.OVERLAY}
-            />
-          )}
-        </>
-      </EffectComposer>
+      {/* Cinematic Post-processing Pipeline */}
+      <CinematicPostProcessing 
+        enabled={postProcessingSettings.enabled}
+        quality={postProcessingSettings.quality}
+      />
 
       {/* Development Stats */}
       {process.env.NODE_ENV === 'development' && <Stats />}
