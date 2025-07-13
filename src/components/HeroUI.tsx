@@ -1,0 +1,270 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { useAppStore } from '@/lib/store'
+
+export default function HeroUI() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { timeOfDay, setTimeOfDay, weatherCondition, setWeatherCondition } = useAppStore()
+
+  return (
+    <>
+      {/* Top Navigation */}
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1, duration: 0.8 }}
+        className="absolute top-0 left-0 right-0 z-20 p-6"
+      >
+        <div className="flex items-center justify-between">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="glass-dark px-4 py-2 rounded-full"
+          >
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              CityGenerator
+            </h1>
+          </motion.div>
+
+          <div className="flex items-center space-x-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="glass-dark px-4 py-2 rounded-full text-sm font-medium hover:bg-white/20 transition-colors"
+            >
+              Vancouver
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="glass-dark p-2 rounded-full hover:bg-white/20 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </motion.button>
+          </div>
+        </div>
+      </motion.nav>
+
+      {/* Hero Content */}
+      <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div className="text-center space-y-8 max-w-4xl mx-auto px-6">
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 1.5, duration: 1 }}
+            className="space-y-6"
+          >
+            <h1 className="text-4xl md:text-7xl font-bold leading-tight">
+              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
+                Experience Cities
+              </span>
+              <br />
+              <span className="text-white">Like Never Before</span>
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Photorealistic 3D visualization platform showcasing urban environments 
+              with real-time data integration and cinematic quality.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 2, duration: 0.8 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn-primary px-8 py-4 text-lg font-semibold"
+            >
+              Explore Vancouver
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn-secondary px-8 py-4 text-lg font-semibold"
+            >
+              Watch Demo
+            </motion.button>
+          </motion.div>
+
+          {/* Feature Pills */}
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 2.5, duration: 0.8 }}
+            className="flex flex-wrap items-center justify-center gap-3 mt-12"
+          >
+            {[
+              'Photorealistic 3D',
+              'Real Building Data',
+              '60 FPS Performance',
+              'Mobile Optimized',
+              'Quality of Life Data'
+            ].map((feature, index) => (
+              <motion.div
+                key={feature}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 2.7 + index * 0.1 }}
+                className="glass-dark px-4 py-2 rounded-full text-sm font-medium"
+              >
+                {feature}
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Bottom Controls */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 3, duration: 0.8 }}
+        className="absolute bottom-6 left-6 right-6 z-20"
+      >
+        <div className="flex items-center justify-between">
+          {/* Camera Controls */}
+          <div className="glass-dark p-3 rounded-full space-x-2 flex items-center">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              title="Drone View"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              title="Street View"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </motion.button>
+          </div>
+
+          {/* Time Controls */}
+          <div className="glass-dark p-3 rounded-full">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium">
+                {String(Math.floor(timeOfDay)).padStart(2, '0')}:{String(Math.floor((timeOfDay % 1) * 60)).padStart(2, '0')}
+              </span>
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setTimeOfDay(12)}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  title="Noon"
+                >
+                  ☀️
+                </motion.button>
+                <input
+                  type="range"
+                  min="0"
+                  max="24"
+                  step="0.5"
+                  value={timeOfDay}
+                  onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
+                  className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setTimeOfDay(0)}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  title="Midnight"
+                >
+                  🌙
+                </motion.button>
+              </div>
+              
+              {/* Weather Controls */}
+              <div className="flex items-center space-x-2 ml-4">
+                <span className="text-sm font-medium">Weather:</span>
+                <select
+                  value={weatherCondition}
+                  onChange={(e) => setWeatherCondition(e.target.value as any)}
+                  className="bg-transparent text-white text-sm border border-white/20 rounded px-2 py-1 hover:bg-white/10 transition-colors"
+                >
+                  <option value="clear" className="bg-gray-800">Clear</option>
+                  <option value="cloudy" className="bg-gray-800">Cloudy</option>
+                  <option value="rainy" className="bg-gray-800">Rainy</option>
+                  <option value="foggy" className="bg-gray-800">Foggy</option>
+                  <option value="snowy" className="bg-gray-800">Snowy</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Side Menu */}
+      <motion.div
+        initial={{ x: 300, opacity: 0 }}
+        animate={{ 
+          x: isMenuOpen ? 0 : 300, 
+          opacity: isMenuOpen ? 1 : 0 
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="absolute top-0 right-0 h-full w-80 z-30"
+      >
+        <div className="glass-dark h-full p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">City Explorer</h2>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsMenuOpen(false)}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </motion.button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Available Cities</h3>
+              <div className="space-y-2">
+                <div className="p-3 glass rounded-lg cursor-pointer hover:bg-white/20 transition-colors">
+                  <div className="font-medium">Vancouver, BC</div>
+                  <div className="text-sm text-gray-400">Population: 675,218</div>
+                </div>
+                <div className="p-3 glass rounded-lg opacity-50 cursor-not-allowed">
+                  <div className="font-medium">Coming Soon...</div>
+                  <div className="text-sm text-gray-400">59 more cities</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Overlay when menu is open */}
+      {isMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setIsMenuOpen(false)}
+          className="absolute inset-0 bg-black/50 z-25"
+        />
+      )}
+    </>
+  )
+}
