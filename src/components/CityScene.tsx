@@ -156,14 +156,14 @@ export default function CityScene({
       <Environment preset="city" background={false} />
 
       {/* Post-processing Effects */}
-      <EffectComposer multisampling={4} enableNormalPass>
+      <EffectComposer multisampling={2} enableNormalPass>
         <>
-          {/* Screen Space Ambient Occlusion for depth */}
+          {/* Screen Space Ambient Occlusion for depth - reduced quality for better performance */}
           {postProcessingSettings.ssao && (
             <SSAO
-              samples={16}
-              radius={0.1}
-              intensity={1.0}
+              samples={8}
+              radius={0.08}
+              intensity={0.8}
               bias={0.025}
               blendFunction={BlendFunction.MULTIPLY}
             />
@@ -179,13 +179,13 @@ export default function CityScene({
             />
           )}
           
-          {/* Enhanced Bloom for glowing lights */}
+          {/* Enhanced Bloom for glowing lights - reduced quality for better performance */}
           {postProcessingSettings.bloom && (
             <Bloom 
-              intensity={1.2} 
-              luminanceThreshold={0.8} 
-              luminanceSmoothing={0.4}
-              height={300}
+              intensity={1.0} 
+              luminanceThreshold={0.9} 
+              luminanceSmoothing={0.3}
+              height={200}
             />
           )}
           

@@ -35,15 +35,15 @@ export class PerformanceOptimizer {
 
   private settings: OptimizationSettings = {
     enableLOD: true,
-    enableFrustumCulling: true,
-    maxRenderDistance: 3000,
+    enableFrustumCulling: false, // Temporarily disabled for debugging
+    maxRenderDistance: 5000, // Increased for better visibility
     lodDistances: {
-      high: 500,
-      medium: 1500,
-      low: 3000
+      high: 1200, // Increased from 500
+      medium: 2500, // Increased from 1500
+      low: 4000 // Increased from 3000
     },
     targetFPS: 60,
-    adaptiveQuality: true
+    adaptiveQuality: false // Temporarily disabled for debugging
   }
 
   private frustum = new Frustum()

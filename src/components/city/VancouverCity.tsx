@@ -50,7 +50,11 @@ export default function VancouverCity() {
       setLoadingProgress(buildings.length > 0 ? 50 + (buildings.length / 100) : 20)
     } else if (buildings.length > 0) {
       setLoadingMessage(usingFallback ? 'Rendering procedural city...' : 'Rendering real city data...')
-      setLoadingProgress(90)
+      setLoadingProgress(100)
+      // Clear loading state after buildings are loaded
+      setTimeout(() => {
+        setLoadingProgress(100)
+      }, 500)
     }
   }, [loading, buildings.length, usingFallback, setLoadingMessage, setLoadingProgress])
 
@@ -93,44 +97,47 @@ export default function VancouverCity() {
     // Update performance metrics
     optimizer.updateMetrics(gl, scene)
     
+    // Temporarily disable aggressive optimization to show all buildings
     // Progressive loading and LOD optimization
-    if (buildings.length > 0) {
-      // Create building objects for optimization (simplified)
-      const buildingObjects = buildings.map(building => {
-        const obj = new Object3D()
-        obj.position.set(...building.position)
-        return obj
+    if (buildings.length > 0 && buildingsRef.current) {
+      const mesh = buildingsRef.current
+      const dummy = new Object3D()
+      const cameraPos = camera.position
+      
+      buildings.forEach((building, i) => {
+        // Calculate distance for basic LOD (but still show buildings)
+        const distance = cameraPos.distanceTo(new Vector3(...building.position))
+        const maxDistance = 4000 // Increased from default 3000
+        
+        // Only hide buildings that are extremely far away
+        if (distance > maxDistance) {
+          dummy.position.set(...building.position)
+          dummy.scale.set(0, 0, 0)
+          dummy.updateMatrix()
+          mesh.setMatrixAt(i, dummy.matrix)
+        } else {
+          // Show building with appropriate scale
+          dummy.position.set(...building.position)
+          
+          // Apply gentle LOD scaling instead of hiding
+          let scaleFactor = 1.0
+          if (distance > 2000) {
+            scaleFactor = 0.8
+          } else if (distance > 1000) {
+            scaleFactor = 0.9
+          }
+          
+          dummy.scale.set(
+            building.scale[0] * scaleFactor, 
+            building.scale[1] * scaleFactor, 
+            building.scale[2] * scaleFactor
+          )
+          dummy.updateMatrix()
+          mesh.setMatrixAt(i, dummy.matrix)
+        }
       })
       
-      // Optimize visible buildings based on camera position and performance
-      const optimizedBuildings = optimizer.optimizeObjects(buildingObjects, camera)
-      
-      // Update instance visibility based on optimization
-      if (buildingsRef.current) {
-        const mesh = buildingsRef.current
-        const dummy = new Object3D()
-        
-        buildings.forEach((building, i) => {
-          const isVisible = optimizedBuildings.some(obj => 
-            obj.position.equals(new Vector3(...building.position))
-          )
-          
-          if (isVisible) {
-            dummy.position.set(...building.position)
-            dummy.scale.set(...building.scale)
-            dummy.updateMatrix()
-            mesh.setMatrixAt(i, dummy.matrix)
-          } else {
-            // Hide by scaling to zero
-            dummy.position.set(...building.position)
-            dummy.scale.set(0, 0, 0)
-            dummy.updateMatrix()
-            mesh.setMatrixAt(i, dummy.matrix)
-          }
-        })
-        
-        mesh.instanceMatrix.needsUpdate = true
-      }
+      mesh.instanceMatrix.needsUpdate = true
     }
     
     // Update development stats
@@ -180,7 +187,7 @@ export default function VancouverCity() {
         <boxGeometry args={[1, 1, 1]} />
         <meshLambertMaterial 
           transparent
-          opacity={!loading && buildings.length > 0 ? 0.9 : 0.3}
+          opacity={buildings.length > 0 ? 0.95 : 0.1}
         />
       </instancedMesh>
 
