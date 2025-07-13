@@ -131,29 +131,23 @@ export default function HeroUI() {
         className="absolute bottom-6 left-6 right-6 z-20"
       >
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-          {/* Camera Controls */}
-          <div className="glass-dark p-2 sm:p-3 rounded-full space-x-2 flex items-center">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              title="Drone View"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              title="Street View"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </motion.button>
+          {/* Camera Controls Instructions */}
+          <div className="glass-dark p-2 sm:p-3 rounded-full">
+            <div className="flex items-center space-x-3 text-xs sm:text-sm">
+              <span className="text-gray-300">Navigate:</span>
+              <div className="flex items-center space-x-1">
+                <span className="px-1 py-0.5 bg-white/20 rounded text-xs">Click+Drag</span>
+                <span className="text-gray-400">Rotate</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="px-1 py-0.5 bg-white/20 rounded text-xs">Scroll</span>
+                <span className="text-gray-400">Zoom</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="px-1 py-0.5 bg-white/20 rounded text-xs">Shift+Drag</span>
+                <span className="text-gray-400">Pan</span>
+              </div>
+            </div>
           </div>
 
           {/* Time Controls */}

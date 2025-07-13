@@ -17,7 +17,7 @@ export default function CinematicCamera() {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null)
   const { camera } = useThree()
   
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false)
   const [currentKeyframe, setCurrentKeyframe] = useState(0)
   const [keyframeProgress, setKeyframeProgress] = useState(0)
 
@@ -202,17 +202,20 @@ export default function CinematicCamera() {
     <>
       <OrbitControls
         ref={controlsRef}
-        enabled={!isAutoPlaying}
+        enabled={true}
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={50}
-        maxDistance={3000}
+        minDistance={20}
+        maxDistance={5000}
         minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2.2}
-        dampingFactor={0.05}
+        maxPolarAngle={Math.PI / 2.1}
+        dampingFactor={0.03}
         enableDamping={true}
         target={[0, 0, 0]}
+        zoomSpeed={1.5}
+        panSpeed={2.0}
+        rotateSpeed={1.0}
       />
       
       {/* Camera mode indicator */}

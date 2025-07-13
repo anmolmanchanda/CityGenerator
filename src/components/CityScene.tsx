@@ -97,6 +97,15 @@ export default function CityScene({
       className="three-canvas"
       dpr={[1, 2]}
       performance={{ min: 0.5 }}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 0,
+        display: 'block'
+      }}
       gl={{
         antialias: true,
         alpha: false,
@@ -105,10 +114,10 @@ export default function CityScene({
         depth: true,
       }}
       camera={{
-        fov: 75,
-        near: 0.1,
-        far: 10000,
-        position: [1000, 800, 1000]
+        fov: 60,
+        near: 1,
+        far: 15000,
+        position: [800, 400, 800]
       }}
       onCreated={({ gl, scene, camera }) => {
         // Configure renderer for better performance and quality
@@ -127,8 +136,13 @@ export default function CityScene({
         <DynamicLighting />
       </Suspense>
       
-      {/* Ambient light (will be modulated by DynamicLighting) */}
-      <ambientLight intensity={0.2} color="#404080" />
+      {/* Enhanced ambient light for better building visibility */}
+      <ambientLight intensity={0.4} color="#6080a0" />
+      
+      {/* Additional fill light for better building definition */}
+      <hemisphereLight
+        args={["#87CEEB", "#404060", 0.3]}
+      />
       
       {/* Sky */}
       <Sky

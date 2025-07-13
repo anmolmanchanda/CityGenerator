@@ -165,15 +165,15 @@ export default function VancouverCity() {
     <group>
       {/* Ground Plane */}
       <Plane 
-        args={[10000, 10000]} 
+        args={[15000, 15000]} 
         rotation={[-Math.PI / 2, 0, 0]} 
-        position={[0, -1, 0]}
+        position={[0, -2, 0]}
         receiveShadow
       >
-        <meshLambertMaterial 
-          color="#1a1a2e" 
-          transparent
-          opacity={0.8}
+        <meshStandardMaterial 
+          color="#2a2a3e" 
+          metalness={0.0}
+          roughness={0.9}
         />
       </Plane>
 
@@ -185,9 +185,11 @@ export default function VancouverCity() {
         receiveShadow
       >
         <boxGeometry args={[1, 1, 1]} />
-        <meshLambertMaterial 
-          transparent
-          opacity={buildings.length > 0 ? 0.95 : 0.1}
+        <meshStandardMaterial 
+          transparent={false}
+          metalness={0.1}
+          roughness={0.8}
+          envMapIntensity={0.5}
         />
       </instancedMesh>
 
