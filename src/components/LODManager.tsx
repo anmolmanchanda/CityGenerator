@@ -21,13 +21,13 @@ interface LODManagerProps {
   maxDetailedBuildings?: number
 }
 
-// LOD distance thresholds
+// LOD distance thresholds - Extended for better city coverage
 const LOD_DISTANCES = {
-  ULTRA_HIGH: 100,    // Individual detailed buildings with all features
-  HIGH: 250,          // Individual buildings, no small details
-  MEDIUM: 500,        // Instanced buildings with medium geometry
-  LOW: 1000,          // Instanced buildings with low geometry
-  VERY_LOW: 2500      // Instanced buildings with minimal geometry
+  ULTRA_HIGH: 200,    // Individual detailed buildings with all features
+  HIGH: 600,          // Individual buildings, no small details
+  MEDIUM: 1500,       // Instanced buildings with medium geometry
+  LOW: 3000,          // Instanced buildings with low geometry
+  VERY_LOW: 8000      // Instanced buildings with minimal geometry - show entire city
 }
 
 interface LODGroup {
@@ -38,7 +38,7 @@ interface LODGroup {
 
 export default function LODManager({ 
   buildings, 
-  maxDetailedBuildings = 50 // Reduced from 100 to 50 for better performance
+  maxDetailedBuildings = 200 // Increased to show more detailed buildings
 }: LODManagerProps) {
   const { camera } = useThree()
   const [lastCameraPosition, setLastCameraPosition] = useState(new THREE.Vector3())
@@ -64,18 +64,18 @@ export default function LODManager({
     buildingsWithDistance.forEach(building => {
       const { distance } = building
       
-      if (distance < LOD_DISTANCES.ULTRA_HIGH && groups[0].length < maxDetailedBuildings / 2) {
+      if (distance < LOD_DISTANCES.ULTRA_HIGH && groups[0].length < maxDetailedBuildings * 0.2) {
         groups[0].push(building) // Ultra high detail - top priority buildings
-      } else if (distance < LOD_DISTANCES.HIGH && groups[1].length < maxDetailedBuildings) {
+      } else if (distance < LOD_DISTANCES.HIGH && groups[1].length < maxDetailedBuildings * 0.4) {
         groups[1].push(building) // High detail - remaining close buildings
       } else if (distance < LOD_DISTANCES.MEDIUM) {
         groups[2].push(building) // Medium detail instanced
       } else if (distance < LOD_DISTANCES.LOW) {
         groups[3].push(building) // Low detail instanced
-      } else if (distance < LOD_DISTANCES.VERY_LOW) {
-        groups[4].push(building) // Very low detail instanced
+      } else {
+        groups[4].push(building) // Very low detail instanced - show ALL buildings
       }
-      // Buildings beyond VERY_LOW distance are culled (not rendered)
+      // Show all buildings, no culling for full city visibility
     })
     
     return groups

@@ -16,7 +16,7 @@ export default function PostProcessingControls({ onSettingsChange }: PostProcess
   const [isOpen, setIsOpen] = useState(false)
   const [settings, setSettings] = useState<PostProcessingSettings>({
     enabled: true,
-    quality: 'high'
+    quality: 'medium' // Match the app default
   })
 
   const handleQualityChange = (quality: PostProcessingSettings['quality']) => {
@@ -61,7 +61,7 @@ export default function PostProcessingControls({ onSettingsChange }: PostProcess
         x: isOpen ? 0 : 250, 
         opacity: isOpen ? 1 : 0.8 
       }}
-      className="fixed top-20 right-4 z-30"
+      className="fixed top-20 right-4 z-50 pointer-events-auto"
     >
       <div className="glass-dark rounded-lg overflow-hidden">
         {/* Toggle Button */}

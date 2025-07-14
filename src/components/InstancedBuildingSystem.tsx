@@ -45,7 +45,7 @@ function createLODGeometry(lodLevel: number, baseScale: [number, number, number]
   }
 }
 
-// LOD-based material creation
+// Enhanced LOD-based material creation with better visuals
 function createLODMaterial(lodLevel: number, materialType: string, timeOfDay: number): THREE.Material {
   const isNight = timeOfDay < 7 || timeOfDay > 17
   

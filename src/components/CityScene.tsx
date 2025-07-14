@@ -210,12 +210,12 @@ export default function CityScene({
       {/* Environment */}
       <Environment preset="city" background={false} />
 
-      {/* Post-processing Pipeline - Disabled for performance */}
-      {/* <OptimizedPostProcessing 
+      {/* Optimized Post-processing Pipeline - Re-enabled with settings */}
+      <OptimizedPostProcessing 
         enabled={postProcessingSettings.enabled}
         quality={postProcessingSettings.quality}
         adaptiveQuality={true}
-      /> */}
+      />
       
       {/* Performance debugging */}
       {process.env.NODE_ENV === 'development' && <PostProcessingDebug />}

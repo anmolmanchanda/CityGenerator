@@ -84,7 +84,7 @@ export default function VancouverCity() {
       {buildings.length > 0 && (
         <LODManager 
           buildings={buildings} 
-          maxDetailedBuildings={100} // Balanced for performance
+          maxDetailedBuildings={300} // Increased for better city detail
         />
       )}
 

@@ -31,8 +31,8 @@ interface PostProcessingSettings {
 
 export default function Home() {
   const [postProcessingSettings, setPostProcessingSettings] = useState<PostProcessingSettings>({
-    enabled: false, // Disabled for performance
-    quality: 'low'
+    enabled: true, // Re-enabled with optimization
+    quality: 'medium' // Default to medium quality
   })
 
   return (
