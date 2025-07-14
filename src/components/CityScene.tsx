@@ -150,21 +150,12 @@ export default function CityScene({
         scene.fog = new THREE.FogExp2(0x000011, 0.0001)
       }}
     >
-      {/* Cinematic Lighting System - HDR, cascaded shadows, area lights */}
-      <Suspense fallback={null}>
-        <CinematicLighting 
-          enabled={postProcessingSettings.enabled}
-          quality={postProcessingSettings.quality}
-        />
-      </Suspense>
+      {/* Basic Lighting Only */}
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[10, 10, 5]} intensity={1} />
       
-      {/* Legacy Dynamic Lighting (fallback) */}
-      <Suspense fallback={null}>
-        <DynamicLighting />
-      </Suspense>
-      
-      {/* HDR Environment System */}
-      <Suspense fallback={null}>
+      {/* HDR Environment System - Disabled for performance */}
+      {/* <Suspense fallback={null}>
         <HDREnvironmentPreloader />
         <HDREnvironmentSystem 
           enabled={postProcessingSettings.enabled}
@@ -173,7 +164,7 @@ export default function CityScene({
                     postProcessingSettings.quality === 'medium' ? 1.0 : 0.8}
           backgroundBlur={0.1}
         />
-      </Suspense>
+      </Suspense> */}
       
       {/* Sky Fallback */}
       <Sky
@@ -187,18 +178,16 @@ export default function CityScene({
         mieDirectionalG={0.8}
       />
 
-      {/* Camera Controls */}
-      <Suspense fallback={null}>
-        <CinematicCamera />
-      </Suspense>
+      {/* Simple Camera Controls */}
+      <OrbitControls enablePan enableZoom enableRotate />
 
       {/* Main City */}
       <Suspense fallback={null}>
         <VancouverCity />
       </Suspense>
 
-      {/* Optimized Atmospheric Effects - Reduced particles, simplified shaders */}
-      <Suspense fallback={null}>
+      {/* Atmospheric Effects - Disabled for performance */}
+      {/* <Suspense fallback={null}>
         <OptimizedAtmosphericEffects 
           enabled={postProcessingSettings.enabled}
           intensity={postProcessingSettings.quality === 'ultra' ? 1.2 : 
@@ -206,17 +195,17 @@ export default function CityScene({
                     postProcessingSettings.quality === 'medium' ? 0.7 : 0.5}
           performanceMode={performanceMode}
         />
-      </Suspense>
+      </Suspense> */}
 
       {/* Environment */}
       <Environment preset="city" background={false} />
 
-      {/* Optimized Post-processing Pipeline - Adaptive quality, reduced SSAO */}
-      <OptimizedPostProcessing 
+      {/* Post-processing Pipeline - Disabled for performance */}
+      {/* <OptimizedPostProcessing 
         enabled={postProcessingSettings.enabled}
         quality={postProcessingSettings.quality}
         adaptiveQuality={true}
-      />
+      /> */}
       
       {/* Performance debugging */}
       {process.env.NODE_ENV === 'development' && <PostProcessingDebug />}

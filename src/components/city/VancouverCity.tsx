@@ -104,73 +104,19 @@ export default function VancouverCity() {
         />
       </Plane>
 
-      {/* Optimized LOD Building System - replaces individual building rendering */}
-      {buildings.length > 0 && (
-        <LODManager 
-          buildings={buildings} 
-          maxDetailedBuildings={25} // Reduced from 100 to 25 for better performance
-        />
-      )}
-
-      {/* Water Bodies (False Creek, English Bay) */}
-      <group>
-        {/* False Creek */}
-        <Plane 
-          args={[800, 200]} 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[200, 0, -300]}
+      {/* Emergency Simple Building System - No LOD for performance */}
+      {buildings.length > 0 && buildings.slice(0, 100).map(building => (
+        <mesh
+          key={building.id}
+          position={building.position}
+          scale={building.scale}
         >
-          <meshPhongMaterial 
-            color="#001122" 
-            transparent
-            opacity={0.7}
-            shininess={100}
-          />
-        </Plane>
+          <boxGeometry />
+          <meshBasicMaterial color={building.color} />
+        </mesh>
+      ))}
 
-        {/* English Bay */}
-        <Plane 
-          args={[1500, 1200]} 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[-600, 0, 800]}
-        >
-          <meshPhongMaterial 
-            color="#001122" 
-            transparent
-            opacity={0.7}
-            shininess={100}
-          />
-        </Plane>
-      </group>
-
-      {/* Parks (green spaces) */}
-      <group>
-        {/* Stanley Park */}
-        <Plane 
-          args={[400, 400]} 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[-400, 1, 400]}
-        >
-          <meshLambertMaterial 
-            color="#0a4a0a" 
-            transparent
-            opacity={0.8}
-          />
-        </Plane>
-
-        {/* Queen Elizabeth Park */}
-        <Plane 
-          args={[130, 130]} 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[300, 1, -200]}
-        >
-          <meshLambertMaterial 
-            color="#0a4a0a" 
-            transparent
-            opacity={0.8}
-          />
-        </Plane>
-      </group>
+      {/* Water and Parks - Disabled for performance */}
 
       {/* Loading indicator */}
       {loading && (

@@ -20,9 +20,9 @@ interface VancouverGeoData {
 
 export function useVancouverGeoData(options: UseVancouverGeoDataOptions = {}): VancouverGeoData {
   const {
-    maxBuildings = 3000, // Reduced for better performance
-    enableParks = true,
-    enableWater = true,
+    maxBuildings = 500, // Emergency reduction for performance
+    enableParks = false, // Disable for initial load performance
+    enableWater = false, // Disable for initial load performance
     enableZoning = false // Zoning data not essential for rendering
   } = options
   
@@ -144,9 +144,9 @@ export function useVancouverGeoData(options: UseVancouverGeoDataOptions = {}): V
 
 // Hook specifically for building data with fallback
 export function useVancouverBuildings() {
-  const [fallbackActive, setFallbackActive] = useState(false)
+  const [fallbackActive, setFallbackActive] = useState(true) // Use fallback immediately for performance
   const geoData = useVancouverGeoData({ 
-    maxBuildings: 3000,
+    maxBuildings: 200, // Ultra-reduced for immediate performance
     enableParks: false,
     enableWater: false,
     enableZoning: false
@@ -162,17 +162,17 @@ export function useVancouverBuildings() {
   })[0]
   
   return {
-    buildings: geoData.error ? fallbackBuildings : geoData.buildings,
-    loading: geoData.loading,
-    error: geoData.error,
-    usingFallback: fallbackActive || geoData.error !== null
+    buildings: fallbackActive ? generateFallbackBuildings() : geoData.buildings,
+    loading: false, // Skip GeoJSON loading for immediate performance
+    error: null,
+    usingFallback: true // Always use fallback for performance
   }
 }
 
 // Generate fallback building data if GeoJSON fails
 function generateFallbackBuildings(): ParsedBuilding[] {
   const buildings: ParsedBuilding[] = []
-  const buildingCount = 2000
+  const buildingCount = 300 // Emergency reduction for performance
   
   for (let i = 0; i < buildingCount; i++) {
     const x = (Math.random() - 0.5) * 8000
