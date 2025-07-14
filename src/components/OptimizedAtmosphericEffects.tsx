@@ -136,8 +136,11 @@ function OptimizedAtmosphericParticles({
     })
   }, [weatherCondition])
   
+  // Check weather condition before hooks
+  const shouldShowParticles = weatherCondition === 'rainy' || weatherCondition === 'snowy' || weatherCondition === 'foggy'
+  
   useFrame((state, delta) => {
-    if (!points.current) return
+    if (!points.current || !shouldShowParticles) return
     
     const positions = points.current.geometry.attributes.position.array as Float32Array
     const velocities = points.current.geometry.attributes.velocity.array as Float32Array
@@ -165,7 +168,7 @@ function OptimizedAtmosphericParticles({
   })
   
   // Only show particles in specific weather conditions
-  if (weatherCondition !== 'rainy' && weatherCondition !== 'snowy' && weatherCondition !== 'foggy') {
+  if (!shouldShowParticles) {
     return null
   }
   
@@ -179,8 +182,8 @@ function OptimizedCloudShadows({ performanceMode = false }: { performanceMode?: 
   const cloudShadowRef = useRef<THREE.Mesh>(null)
   const { timeOfDay } = useAppStore()
   
-  // Skip cloud shadows in performance mode
-  if (performanceMode) return null
+  // Check performance mode before hooks
+  const shouldRenderShadows = !performanceMode
   
   const cloudShadowMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
@@ -221,6 +224,8 @@ function OptimizedCloudShadows({ performanceMode = false }: { performanceMode?: 
   }, [])
   
   useFrame((state, delta) => {
+    if (!shouldRenderShadows) return
+    
     if (cloudShadowMaterial.uniforms.time) {
       cloudShadowMaterial.uniforms.time.value += delta * 0.5 // Slower animation
     }
@@ -236,6 +241,10 @@ function OptimizedCloudShadows({ performanceMode = false }: { performanceMode?: 
       )
     }
   })
+  
+  if (!shouldRenderShadows) {
+    return null
+  }
   
   return (
     <Plane
@@ -327,7 +336,9 @@ export default function OptimizedAtmosphericEffects({
 }: OptimizedAtmosphericEffectsProps) {
   const { weatherCondition, timeOfDay } = useAppStore()
   
-  if (!enabled) return null
+  if (!enabled) {
+    return null
+  }
   
   return (
     <group>

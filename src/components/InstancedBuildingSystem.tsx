@@ -191,9 +191,12 @@ function InstancedBuildingCategory({
     }
   }, [category.instances])
   
+  // Check if we have instances before hooks
+  const hasInstances = category.instances.length > 0
+  
   // Frustum culling optimization
   useFrame(() => {
-    if (!meshRef.current) return
+    if (!meshRef.current || !hasInstances) return
     
     const mesh = meshRef.current
     const frustum = new THREE.Frustum()
@@ -208,7 +211,7 @@ function InstancedBuildingCategory({
     mesh.visible = frustum.intersectsSphere(boundingSphere)
   })
   
-  if (category.instances.length === 0) return null
+  if (!hasInstances) return null
   
   return (
     <instancedMesh

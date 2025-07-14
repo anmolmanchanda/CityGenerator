@@ -20,6 +20,7 @@ import {
   BlendFunction
 } from 'postprocessing'
 import { useAppStore } from '@/lib/store'
+import * as THREE from 'three'
 
 interface OptimizedPostProcessingProps {
   enabled?: boolean
@@ -175,8 +176,115 @@ export default function OptimizedPostProcessing({
     }
   }, [weatherCondition])
   
-  if (!enabled) return null
+  if (!enabled) {
+    return null
+  }
   
+  // Create array of effects to avoid null children
+  const effects = []
+  
+  // Anti-aliasing - always first
+  effects.push(<SMAA key="smaa" />)
+  
+  // SSAO - optimized with lower sample counts
+  effects.push(
+    <SSAO
+      key="ssao"
+      samples={qualitySettings.ssaoSamples}
+      radius={qualitySettings.ssaoRadius}
+      intensity={0.5 * weatherMultiplier}
+      bias={0.005}
+      fade={0.01}
+      color={new THREE.Color('black')}
+      resolutionScale={effectiveQuality === 'low' ? 0.5 : 1.0}
+    />
+  )
+  
+  // Optimized Bloom
+  effects.push(
+    <Bloom
+      key="bloom"
+      intensity={timeBasedSettings.bloomIntensity * weatherMultiplier}
+      threshold={timeBasedSettings.bloomThreshold}
+      smoothing={0.8}
+      height={qualitySettings.bloomHeight}
+      opacity={0.8}
+    />
+  )
+  
+  // Conditional Depth of Field - only on higher qualities
+  if (qualitySettings.depthOfFieldEnabled) {
+    effects.push(
+      <DepthOfField
+        key="dof"
+        focusDistance={0.02}
+        focalLength={0.05}
+        bokehScale={2}  // Fixed lower value
+        height={qualitySettings.bloomHeight / 2}  // Half bloom height for performance
+      />
+    )
+  }
+  
+  // Conditional Chromatic Aberration
+  if (qualitySettings.chromaticAberrationEnabled) {
+    effects.push(
+      <ChromaticAberration
+        key="chromatic"
+        offset={[0.001, 0.001]}
+      />
+    )
+  }
+  
+  // Tone Mapping - always enabled
+  effects.push(
+    <ToneMapping 
+      key="tonemap"
+      mode={ToneMappingMode.ACES_FILMIC}
+      exposure={1.2}
+      whitePoint={1.0}
+      middleGrey={0.6}
+    />
+  )
+  
+  // Brightness/Contrast - simplified
+  effects.push(
+    <BrightnessContrast
+      key="brightness"
+      brightness={0.0}
+      contrast={timeBasedSettings.contrastBoost}
+    />
+  )
+  
+  // Hue/Saturation - simplified
+  effects.push(
+    <HueSaturation
+      key="hue"
+      hue={0.0}
+      saturation={timeBasedSettings.saturationBoost}
+    />
+  )
+  
+  // Vignette - conditional
+  if (qualitySettings.vignetteEnabled) {
+    effects.push(
+      <Vignette
+        key="vignette"
+        offset={0.3}
+        darkness={timeBasedSettings.vignetteIntensity}
+      />
+    )
+  }
+  
+  // Film Grain - lightweight
+  effects.push(
+    <Noise
+      key="noise"
+      premultiply
+      blendFunction={BlendFunction.OVERLAY}
+      opacity={qualitySettings.filmGrainIntensity}
+    />
+  )
+
   return (
     <EffectComposer 
       ref={composerRef}
@@ -184,80 +292,7 @@ export default function OptimizedPostProcessing({
       enableNormalPass
       stencilBuffer={true}
     >
-      {/* Anti-aliasing - always first */}
-      <SMAA />
-      
-      {/* SSAO - optimized with lower sample counts */}
-      <SSAO
-        samples={qualitySettings.ssaoSamples}
-        radius={qualitySettings.ssaoRadius}
-        intensity={0.5 * weatherMultiplier}
-        bias={0.005}
-        fade={0.01}
-        color="black"
-        resolutionScale={effectiveQuality === 'low' ? 0.5 : 1.0}
-      />
-      
-      {/* Optimized Bloom */}
-      <Bloom
-        intensity={timeBasedSettings.bloomIntensity * weatherMultiplier}
-        threshold={timeBasedSettings.bloomThreshold}
-        smoothing={0.8}
-        height={qualitySettings.bloomHeight}
-        opacity={0.8}
-      />
-      
-      {/* Conditional Depth of Field - only on higher qualities */}
-      {qualitySettings.depthOfFieldEnabled && (
-        <DepthOfField
-          focusDistance={0.02}
-          focalLength={0.05}
-          bokehScale={2}  // Fixed lower value
-          height={qualitySettings.bloomHeight / 2}  // Half bloom height for performance
-        />
-      )}
-      
-      {/* Conditional Chromatic Aberration */}
-      {qualitySettings.chromaticAberrationEnabled && (
-        <ChromaticAberration
-          offset={[0.001, 0.001]}
-        />
-      )}
-      
-      {/* Tone Mapping - always enabled */}
-      <ToneMapping 
-        mode={ToneMappingMode.ACES_FILMIC}
-        exposure={1.2}
-        whitePoint={1.0}
-        middleGrey={0.6}
-      />
-      
-      {/* Brightness/Contrast - simplified */}
-      <BrightnessContrast
-        brightness={0.0}
-        contrast={timeBasedSettings.contrastBoost}
-      />
-      
-      {/* Hue/Saturation - simplified */}
-      <HueSaturation
-        hue={0.0}
-        saturation={timeBasedSettings.saturationBoost}
-      />
-      
-      {/* Vignette - always enabled but subtle */}
-      {qualitySettings.vignetteEnabled && (
-        <Vignette
-          offset={0.3}
-          darkness={timeBasedSettings.vignetteIntensity}
-        />
-      )}
-      
-      {/* Film Grain - lightweight */}
-      <Noise
-        premultiply
-        blendFunction={BlendFunction.OVERLAY}
-        opacity={qualitySettings.filmGrainIntensity}
-      />
+      {effects}
     </EffectComposer>
   )
 }
