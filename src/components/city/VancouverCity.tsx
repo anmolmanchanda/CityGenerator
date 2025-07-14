@@ -1,15 +1,12 @@
 'use client'
 
-import { useRef, useMemo, useEffect, useState } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
-import { InstancedMesh, Object3D, Color, Vector3 } from 'three'
-import { Box, Plane } from '@react-three/drei'
+import { useMemo, useEffect } from 'react'
+import { Color } from 'three'
+import { Plane } from '@react-three/drei'
 import { useVancouverBuildings } from '@/lib/vancouverData'
 import { generateBuildingColor } from '@/utils'
 import { useAppStore } from '@/lib/store'
-import { PerformanceOptimizer } from '@/lib/performanceOptimizer'
-import BuildingMaterial from '@/shaders/BuildingMaterial'
-import DetailedBuilding from './DetailedBuilding'
+import LODManager, { PerformanceStats } from '../LODManager'
 
 // Building data structure for rendering
 interface RenderBuilding {
@@ -23,13 +20,7 @@ interface RenderBuilding {
 }
 
 export default function VancouverCity() {
-  const buildingsRef = useRef<InstancedMesh>(null)
   const { setLoadingProgress, setLoadingMessage } = useAppStore()
-  const { camera, gl, scene } = useThree()
-  
-  // Performance optimization
-  const optimizerRef = useRef(new PerformanceOptimizer())
-  const [visibleBuildings, setVisibleBuildings] = useState<RenderBuilding[]>([])
   
   // Fetch real Vancouver building data
   const { buildings: rawBuildings, loading, error, usingFallback } = useVancouverBuildings()
@@ -73,10 +64,10 @@ export default function VancouverCity() {
   // Update loading state
   useEffect(() => {
     if (loading) {
-      setLoadingMessage(usingFallback ? 'Generating Vancouver cityscape...' : 'Loading Vancouver building data...')
+      setLoadingMessage(usingFallback ? 'Optimizing Vancouver cityscape...' : 'Loading Vancouver building data...')
       setLoadingProgress(buildings.length > 0 ? 50 + (buildings.length / 100) : 20)
     } else if (buildings.length > 0) {
-      setLoadingMessage(usingFallback ? 'Rendering procedural city...' : 'Rendering real city data...')
+      setLoadingMessage('Applying performance optimizations...')
       setLoadingProgress(100)
       // Clear loading state after buildings are loaded
       setTimeout(() => {
@@ -93,121 +84,11 @@ export default function VancouverCity() {
     }
   }, [error, usingFallback, setLoadingMessage])
 
-  useEffect(() => {
-    if (!buildingsRef.current || !farBuildings.length) return
-
-    const mesh = buildingsRef.current
-    const dummy = new Object3D()
-
-    farBuildings.forEach((building, i) => {
-      dummy.position.set(...building.position)
-      dummy.scale.set(...building.scale)
-      dummy.updateMatrix()
-      
-      mesh.setMatrixAt(i, dummy.matrix)
-      if (mesh.instanceColor) {
-        mesh.setColorAt(i, building.color)
-      }
-    })
-
-    mesh.instanceMatrix.needsUpdate = true
-    if (mesh.instanceColor) {
-      mesh.instanceColor.needsUpdate = true
-    }
-  }, [])
-
-  // Performance-optimized rendering loop for far buildings
-  useFrame((state) => {
-    if (!buildingsRef.current || loading || farBuildings.length === 0) return
-    
-    const time = state.clock.getElapsedTime()
-    const optimizer = optimizerRef.current
-    
-    // Update performance metrics
-    optimizer.updateMetrics(gl, scene)
-    
-    // Simple LOD for far buildings
-    if (farBuildings.length > 0 && buildingsRef.current) {
-      const mesh = buildingsRef.current
-      const dummy = new Object3D()
-      const cameraPos = camera.position
-      
-      farBuildings.forEach((building, i) => {
-        const distance = cameraPos.distanceTo(new Vector3(...building.position))
-        const maxDistance = 6000
-        
-        if (distance > maxDistance) {
-          dummy.position.set(...building.position)
-          dummy.scale.set(0, 0, 0)
-          dummy.updateMatrix()
-          mesh.setMatrixAt(i, dummy.matrix)
-        } else {
-          dummy.position.set(...building.position)
-          
-          // Apply distance-based scaling
-          let scaleFactor = 1.0
-          if (distance > 4000) {
-            scaleFactor = 0.6
-          } else if (distance > 2000) {
-            scaleFactor = 0.8
-          }
-          
-          dummy.scale.set(
-            building.scale[0] * scaleFactor, 
-            building.scale[1] * scaleFactor, 
-            building.scale[2] * scaleFactor
-          )
-          dummy.updateMatrix()
-          mesh.setMatrixAt(i, dummy.matrix)
-        }
-      })
-      
-      mesh.instanceMatrix.needsUpdate = true
-    }
-    
-    // Update development stats
-    if (process.env.NODE_ENV === 'development') {
-      const metrics = optimizer.getMetrics()
-      
-      const triangleElement = document.getElementById('triangle-counter')
-      if (triangleElement) {
-        triangleElement.textContent = `${Math.floor(metrics.triangles / 1000)}k`
-      }
-      
-      const memoryElement = document.getElementById('memory-counter')
-      if (memoryElement) {
-        memoryElement.textContent = `${Math.round(metrics.memory)}MB`
-      }
-      
-      const fpsElement = document.getElementById('fps-counter')
-      if (fpsElement) {
-        fpsElement.textContent = metrics.fps.toString()
-      }
-    }
-  })
-
-  // Separate buildings into LOD groups for performance
-  const { nearBuildings, farBuildings } = useMemo(() => {
-    if (!buildings.length) return { nearBuildings: [], farBuildings: [] }
-    
-    const cameraPos = camera.position
-    const near: RenderBuilding[] = []
-    const far: RenderBuilding[] = []
-    
-    buildings.forEach(building => {
-      const distance = new Vector3(...building.position).distanceTo(cameraPos)
-      if (distance < 1000) {
-        near.push(building)
-      } else {
-        far.push(building)
-      }
-    })
-    
-    return { nearBuildings: near, farBuildings: far }
-  }, [buildings, camera.position])
-
   return (
     <group>
+      {/* Performance monitoring for development */}
+      <PerformanceStats />
+      
       {/* Ground Plane */}
       <Plane 
         args={[15000, 15000]} 
@@ -222,33 +103,13 @@ export default function VancouverCity() {
         />
       </Plane>
 
-      {/* High-detail buildings (near camera) */}
-      {nearBuildings.slice(0, 100).map(building => (
-        <DetailedBuilding
-          key={building.id}
-          id={building.id}
-          position={building.position}
-          scale={building.scale}
-          materialType={building.materialType}
-          buildingType={building.type}
-          hasDetails={building.hasDetails}
+      {/* Optimized LOD Building System - replaces individual building rendering */}
+      {buildings.length > 0 && (
+        <LODManager 
+          buildings={buildings} 
+          maxDetailedBuildings={25} // Reduced from 100 to 25 for better performance
         />
-      ))}
-
-      {/* Low-detail buildings (instanced mesh for far buildings) */}
-      <instancedMesh
-        ref={buildingsRef}
-        args={[undefined, undefined, farBuildings.length]}
-        castShadow
-        receiveShadow
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial 
-          color="#8a8a9a"
-          metalness={0.1}
-          roughness={0.8}
-        />
-      </instancedMesh>
+      )}
 
       {/* Water Bodies (False Creek, English Bay) */}
       <group>
@@ -313,26 +174,28 @@ export default function VancouverCity() {
       {/* Loading indicator */}
       {loading && (
         <group position={[0, 100, 0]}>
-          <Box args={[50, 10, 50]}>
+          <mesh>
+            <boxGeometry args={[50, 10, 50]} />
             <meshBasicMaterial 
               color="white" 
               transparent 
               opacity={0.8} 
             />
-          </Box>
+          </mesh>
         </group>
       )}
 
       {/* Error indicator */}
       {error && (
         <group position={[0, 150, 0]}>
-          <Box args={[100, 20, 20]}>
+          <mesh>
+            <boxGeometry args={[100, 20, 20]} />
             <meshBasicMaterial 
               color="red" 
               transparent 
               opacity={0.6} 
             />
-          </Box>
+          </mesh>
         </group>
       )}
     </group>

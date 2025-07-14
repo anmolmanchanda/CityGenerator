@@ -10,8 +10,8 @@ import {
   Stats,
   Sky
 } from '@react-three/drei'
-import CinematicPostProcessing, { POST_PROCESSING_PRESETS } from './CinematicPostProcessing'
-import AtmosphericEffects from './AtmosphericEffects'
+import OptimizedPostProcessing, { PostProcessingDebug } from './OptimizedPostProcessing'
+import OptimizedAtmosphericEffects from './OptimizedAtmosphericEffects'
 import CinematicLighting from './CinematicLighting'
 import VancouverCity from './city/VancouverCity'
 import CinematicCamera from './city/CinematicCamera'
@@ -41,16 +41,19 @@ export default function CityScene({
 }: CitySceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isClient, setIsClient] = useState(false)
+  const [performanceMode, setPerformanceMode] = useState(false)
+  const [currentFPS, setCurrentFPS] = useState(60)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   useEffect(() => {
-    // Performance monitoring
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    // Enhanced performance monitoring with adaptive quality
+    if (typeof window !== 'undefined') {
       let frames = 0
       let lastTime = performance.now()
+      let fpsHistory: number[] = []
       
       const updateStats = () => {
         frames++
@@ -58,8 +61,33 @@ export default function CityScene({
         
         if (currentTime >= lastTime + 1000) {
           const fps = Math.round((frames * 1000) / (currentTime - lastTime))
-          const fpsElement = document.getElementById('fps-counter')
-          if (fpsElement) fpsElement.textContent = fps.toString()
+          setCurrentFPS(fps)
+          
+          // Track FPS history for performance mode detection
+          fpsHistory.push(fps)
+          if (fpsHistory.length > 5) fpsHistory.shift() // Keep last 5 seconds
+          
+          // Calculate average FPS
+          const avgFPS = fpsHistory.reduce((sum, f) => sum + f, 0) / fpsHistory.length
+          
+          // Enable performance mode if FPS consistently below 40
+          const shouldEnablePerformanceMode = avgFPS < 40 && fpsHistory.length >= 3
+          setPerformanceMode(shouldEnablePerformanceMode)
+          
+          // Update development UI
+          if (process.env.NODE_ENV === 'development') {
+            const fpsElement = document.getElementById('fps-counter')
+            if (fpsElement) {
+              fpsElement.textContent = fps.toString()
+              fpsElement.style.color = fps < 30 ? 'red' : fps < 45 ? 'orange' : 'green'
+            }
+            
+            const perfModeElement = document.getElementById('performance-mode')
+            if (perfModeElement) {
+              perfModeElement.textContent = shouldEnablePerformanceMode ? 'ON' : 'OFF'
+              perfModeElement.style.color = shouldEnablePerformanceMode ? 'red' : 'green'
+            }
+          }
           
           frames = 0
           lastTime = currentTime
@@ -156,24 +184,29 @@ export default function CityScene({
         <VancouverCity />
       </Suspense>
 
-      {/* Atmospheric Effects - Volumetric fog, particles, cloud shadows */}
+      {/* Optimized Atmospheric Effects - Reduced particles, simplified shaders */}
       <Suspense fallback={null}>
-        <AtmosphericEffects 
+        <OptimizedAtmosphericEffects 
           enabled={postProcessingSettings.enabled}
-          intensity={postProcessingSettings.quality === 'ultra' ? 1.5 : 
+          intensity={postProcessingSettings.quality === 'ultra' ? 1.2 : 
                     postProcessingSettings.quality === 'high' ? 1.0 : 
-                    postProcessingSettings.quality === 'medium' ? 0.7 : 0.4}
+                    postProcessingSettings.quality === 'medium' ? 0.7 : 0.5}
+          performanceMode={performanceMode}
         />
       </Suspense>
 
       {/* Environment */}
       <Environment preset="city" background={false} />
 
-      {/* Cinematic Post-processing Pipeline */}
-      <CinematicPostProcessing 
+      {/* Optimized Post-processing Pipeline - Adaptive quality, reduced SSAO */}
+      <OptimizedPostProcessing 
         enabled={postProcessingSettings.enabled}
         quality={postProcessingSettings.quality}
+        adaptiveQuality={true}
       />
+      
+      {/* Performance debugging */}
+      {process.env.NODE_ENV === 'development' && <PostProcessingDebug />}
 
       {/* Development Stats */}
       {process.env.NODE_ENV === 'development' && <Stats />}
