@@ -1,11 +1,10 @@
 'use client'
 
-import { useMemo, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Color } from 'three'
 import { Plane } from '@react-three/drei'
 import { useVancouverBuildings } from '@/lib/vancouverData'
 import { generateBuildingColor } from '@/utils'
-import { useAppStore } from '@/lib/store'
 import type { BuildingData } from '@/types'
 import LODManager, { PerformanceStats } from '../LODManager'
 
@@ -21,10 +20,8 @@ interface RenderBuilding {
 }
 
 export default function VancouverCity() {
-  const { setLoadingProgress, setLoadingMessage } = useAppStore()
-  
-  // Fetch real Vancouver building data
-  const { buildings: rawBuildings, loading, error, usingFallback } = useVancouverBuildings()
+  // Fetch Vancouver building data (using optimized fallback)
+  const { buildings: rawBuildings } = useVancouverBuildings()
   
   // Process buildings for rendering with enhanced materials and details
   const buildings = useMemo((): RenderBuilding[] => {
@@ -62,28 +59,7 @@ export default function VancouverCity() {
     })
   }, [rawBuildings])
 
-  // Update loading state
-  useEffect(() => {
-    if (loading) {
-      setLoadingMessage(usingFallback ? 'Optimizing Vancouver cityscape...' : 'Loading Vancouver building data...')
-      setLoadingProgress(buildings.length > 0 ? 50 + (buildings.length / 100) : 20)
-    } else if (buildings.length > 0) {
-      setLoadingMessage('Applying performance optimizations...')
-      setLoadingProgress(100)
-      // Clear loading state after buildings are loaded
-      setTimeout(() => {
-        setLoadingProgress(100)
-      }, 500)
-    }
-  }, [loading, buildings.length, usingFallback, setLoadingMessage, setLoadingProgress])
-
-  // Handle errors
-  useEffect(() => {
-    if (error && !usingFallback) {
-      console.error('Vancouver building data error:', error)
-      setLoadingMessage('Switching to fallback data...')
-    }
-  }, [error, usingFallback, setLoadingMessage])
+  // No loading state management needed - using immediate fallback data
 
   return (
     <group>
@@ -266,33 +242,6 @@ export default function VancouverCity() {
         </mesh>
       </group>
 
-      {/* Loading indicator */}
-      {loading && (
-        <group position={[0, 100, 0]}>
-          <mesh>
-            <boxGeometry args={[50, 10, 50]} />
-            <meshBasicMaterial 
-              color="white" 
-              transparent 
-              opacity={0.8} 
-            />
-          </mesh>
-        </group>
-      )}
-
-      {/* Error indicator */}
-      {error && (
-        <group position={[0, 150, 0]}>
-          <mesh>
-            <boxGeometry args={[100, 20, 20]} />
-            <meshBasicMaterial 
-              color="red" 
-              transparent 
-              opacity={0.6} 
-            />
-          </mesh>
-        </group>
-      )}
     </group>
   )
 }
