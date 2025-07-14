@@ -12,6 +12,7 @@ import {
 } from '@react-three/drei'
 import CinematicPostProcessing, { POST_PROCESSING_PRESETS } from './CinematicPostProcessing'
 import AtmosphericEffects from './AtmosphericEffects'
+import CinematicLighting from './CinematicLighting'
 import VancouverCity from './city/VancouverCity'
 import CinematicCamera from './city/CinematicCamera'
 import DynamicLighting from './city/DynamicLighting'
@@ -120,18 +121,18 @@ export default function CityScene({
         scene.fog = new THREE.FogExp2(0x000011, 0.0001)
       }}
     >
-      {/* Dynamic Lighting System */}
+      {/* Cinematic Lighting System - HDR, cascaded shadows, area lights */}
+      <Suspense fallback={null}>
+        <CinematicLighting 
+          enabled={postProcessingSettings.enabled}
+          quality={postProcessingSettings.quality}
+        />
+      </Suspense>
+      
+      {/* Legacy Dynamic Lighting (fallback) */}
       <Suspense fallback={null}>
         <DynamicLighting />
       </Suspense>
-      
-      {/* Enhanced ambient light for better building visibility */}
-      <ambientLight intensity={0.4} color="#6080a0" />
-      
-      {/* Additional fill light for better building definition */}
-      <hemisphereLight
-        args={["#87CEEB", "#404060", 0.3]}
-      />
       
       {/* Sky */}
       <Sky

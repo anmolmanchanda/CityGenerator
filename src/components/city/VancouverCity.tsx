@@ -8,6 +8,8 @@ import { useVancouverBuildings } from '@/lib/vancouverData'
 import { generateBuildingColor } from '@/utils'
 import { useAppStore } from '@/lib/store'
 import { PerformanceOptimizer } from '@/lib/performanceOptimizer'
+import BuildingMaterial from '@/shaders/BuildingMaterial'
+import DetailedBuilding from './DetailedBuilding'
 
 // Building data structure for rendering
 interface RenderBuilding {
@@ -16,6 +18,8 @@ interface RenderBuilding {
   scale: [number, number, number]
   color: Color
   type: string
+  materialType: 'glass' | 'concrete' | 'metal' | 'brick'
+  hasDetails: boolean
 }
 
 export default function VancouverCity() {
@@ -30,17 +34,40 @@ export default function VancouverCity() {
   // Fetch real Vancouver building data
   const { buildings: rawBuildings, loading, error, usingFallback } = useVancouverBuildings()
   
-  // Process buildings for rendering
+  // Process buildings for rendering with enhanced materials and details
   const buildings = useMemo((): RenderBuilding[] => {
     if (!rawBuildings.length) return []
     
-    return rawBuildings.map(building => ({
-      id: building.id,
-      position: building.position,
-      scale: building.scale,
-      color: generateBuildingColor(building.type, building.height, building.id.charCodeAt(0)),
-      type: building.type
-    }))
+    return rawBuildings.map(building => {
+      const height = building.height
+      const buildingType = building.type
+      
+      // Determine material type based on building characteristics
+      let materialType: 'glass' | 'concrete' | 'metal' | 'brick' = 'concrete'
+      
+      if (buildingType === 'office' && height > 100) {
+        materialType = Math.random() > 0.3 ? 'glass' : 'metal'
+      } else if (buildingType === 'commercial' && height > 50) {
+        materialType = Math.random() > 0.5 ? 'glass' : 'concrete'
+      } else if (buildingType === 'industrial') {
+        materialType = Math.random() > 0.6 ? 'metal' : 'concrete'
+      } else if (buildingType === 'residential' && height < 30) {
+        materialType = Math.random() > 0.7 ? 'brick' : 'concrete'
+      }
+      
+      // Determine if building should have architectural details
+      const hasDetails = height > 50 && Math.random() > 0.4
+      
+      return {
+        id: building.id,
+        position: building.position,
+        scale: building.scale,
+        color: generateBuildingColor(building.type, building.height, building.id.charCodeAt(0)),
+        type: building.type,
+        materialType,
+        hasDetails
+      }
+    })
   }, [rawBuildings])
 
   // Update loading state
@@ -67,29 +94,31 @@ export default function VancouverCity() {
   }, [error, usingFallback, setLoadingMessage])
 
   useEffect(() => {
-    if (!buildingsRef.current) return
+    if (!buildingsRef.current || !farBuildings.length) return
 
     const mesh = buildingsRef.current
     const dummy = new Object3D()
 
-    buildings.forEach((building, i) => {
+    farBuildings.forEach((building, i) => {
       dummy.position.set(...building.position)
       dummy.scale.set(...building.scale)
       dummy.updateMatrix()
       
       mesh.setMatrixAt(i, dummy.matrix)
-      mesh.setColorAt(i, building.color)
+      if (mesh.instanceColor) {
+        mesh.setColorAt(i, building.color)
+      }
     })
 
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) {
       mesh.instanceColor.needsUpdate = true
     }
-  }, [buildings])
+  }, [])
 
-  // Performance-optimized rendering loop
+  // Performance-optimized rendering loop for far buildings
   useFrame((state) => {
-    if (!buildingsRef.current || loading || buildings.length === 0) return
+    if (!buildingsRef.current || loading || farBuildings.length === 0) return
     
     const time = state.clock.getElapsedTime()
     const optimizer = optimizerRef.current
@@ -97,34 +126,30 @@ export default function VancouverCity() {
     // Update performance metrics
     optimizer.updateMetrics(gl, scene)
     
-    // Temporarily disable aggressive optimization to show all buildings
-    // Progressive loading and LOD optimization
-    if (buildings.length > 0 && buildingsRef.current) {
+    // Simple LOD for far buildings
+    if (farBuildings.length > 0 && buildingsRef.current) {
       const mesh = buildingsRef.current
       const dummy = new Object3D()
       const cameraPos = camera.position
       
-      buildings.forEach((building, i) => {
-        // Calculate distance for basic LOD (but still show buildings)
+      farBuildings.forEach((building, i) => {
         const distance = cameraPos.distanceTo(new Vector3(...building.position))
-        const maxDistance = 4000 // Increased from default 3000
+        const maxDistance = 6000
         
-        // Only hide buildings that are extremely far away
         if (distance > maxDistance) {
           dummy.position.set(...building.position)
           dummy.scale.set(0, 0, 0)
           dummy.updateMatrix()
           mesh.setMatrixAt(i, dummy.matrix)
         } else {
-          // Show building with appropriate scale
           dummy.position.set(...building.position)
           
-          // Apply gentle LOD scaling instead of hiding
+          // Apply distance-based scaling
           let scaleFactor = 1.0
-          if (distance > 2000) {
+          if (distance > 4000) {
+            scaleFactor = 0.6
+          } else if (distance > 2000) {
             scaleFactor = 0.8
-          } else if (distance > 1000) {
-            scaleFactor = 0.9
           }
           
           dummy.scale.set(
@@ -161,6 +186,26 @@ export default function VancouverCity() {
     }
   })
 
+  // Separate buildings into LOD groups for performance
+  const { nearBuildings, farBuildings } = useMemo(() => {
+    if (!buildings.length) return { nearBuildings: [], farBuildings: [] }
+    
+    const cameraPos = camera.position
+    const near: RenderBuilding[] = []
+    const far: RenderBuilding[] = []
+    
+    buildings.forEach(building => {
+      const distance = new Vector3(...building.position).distanceTo(cameraPos)
+      if (distance < 1000) {
+        near.push(building)
+      } else {
+        far.push(building)
+      }
+    })
+    
+    return { nearBuildings: near, farBuildings: far }
+  }, [buildings, camera.position])
+
   return (
     <group>
       {/* Ground Plane */}
@@ -177,19 +222,31 @@ export default function VancouverCity() {
         />
       </Plane>
 
-      {/* Buildings */}
+      {/* High-detail buildings (near camera) */}
+      {nearBuildings.slice(0, 100).map(building => (
+        <DetailedBuilding
+          key={building.id}
+          id={building.id}
+          position={building.position}
+          scale={building.scale}
+          materialType={building.materialType}
+          buildingType={building.type}
+          hasDetails={building.hasDetails}
+        />
+      ))}
+
+      {/* Low-detail buildings (instanced mesh for far buildings) */}
       <instancedMesh
         ref={buildingsRef}
-        args={[undefined, undefined, buildings.length]}
+        args={[undefined, undefined, farBuildings.length]}
         castShadow
         receiveShadow
       >
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial 
-          transparent={false}
+          color="#8a8a9a"
           metalness={0.1}
           roughness={0.8}
-          envMapIntensity={0.5}
         />
       </instancedMesh>
 
