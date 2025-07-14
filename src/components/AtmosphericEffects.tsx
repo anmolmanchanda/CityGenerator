@@ -38,7 +38,6 @@ const volumetricFogFragmentShader = `
   uniform vec3 fogColor;
   uniform vec3 sunPosition;
   uniform float sunIntensity;
-  uniform vec3 cameraPosition;
   
   varying vec3 vWorldPosition;
   varying vec3 vNormal;
@@ -333,8 +332,7 @@ function VolumetricFog({ density = 1.0, color = '#404080', near = 1, far = 5000 
         density: { value: density },
         fogColor: { value: new THREE.Color(color) },
         sunPosition: { value: new THREE.Vector3(1000, 500, 1000) },
-        sunIntensity: { value: 1.0 },
-        cameraPosition: { value: camera.position }
+        sunIntensity: { value: 1.0 }
       },
       vertexShader: volumetricFogVertexShader,
       fragmentShader: volumetricFogFragmentShader,
@@ -349,9 +347,7 @@ function VolumetricFog({ density = 1.0, color = '#404080', near = 1, far = 5000 
       fogMaterial.uniforms.time.value += delta
     }
     
-    if (fogMaterial.uniforms.cameraPosition) {
-      fogMaterial.uniforms.cameraPosition.value.copy(camera.position)
-    }
+    // Camera position is automatically available as built-in uniform
     
     // Adjust fog density based on weather
     const weatherMultiplier = {

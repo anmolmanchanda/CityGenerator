@@ -35,13 +35,8 @@ const glassFragmentShader = `
   uniform float time;
   uniform float opacity;
   uniform vec3 tint;
-  uniform float roughness;
-  uniform float metalness;
-  uniform float transmission;
-  uniform float thickness;
   uniform bool hasLights;
   uniform float lightIntensity;
-  uniform vec3 buildingCenter;
   
   varying vec3 vWorldPosition;
   varying vec3 vNormal;
@@ -82,7 +77,7 @@ const glassFragmentShader = `
     
     // Interior lighting simulation
     vec2 windowId = floor(vUv * vec2(8.0, 12.0));
-    float lightChance = random(windowId + buildingCenter.xz);
+    float lightChance = random(windowId + vWorldPosition.xz * 0.001);
     float isLit = hasLights && lightChance > 0.7 ? 1.0 : 0.0;
     
     // Animate some lights
@@ -101,7 +96,7 @@ const glassFragmentShader = `
     
     // Final color composition
     vec3 finalColor = glassTint + interiorLight;
-    float finalOpacity = mix(transmission, 1.0, fresnelValue) * opacity;
+    float finalOpacity = mix(0.9, 1.0, fresnelValue) * opacity;
     
     gl_FragColor = vec4(finalColor, finalOpacity);
   }
@@ -190,17 +185,8 @@ export function GlassMaterial({
     time: { value: 0 },
     opacity: { value: 0.7 },
     tint: { value: new THREE.Color('#4A90E2') },
-    roughness: { value: 0.1 },
-    metalness: { value: 0.0 },
-    transmission: { value: 0.9 },
-    thickness: { value: 0.1 },
     hasLights: { value: timeOfDay < 7 || timeOfDay > 17 },
-    lightIntensity: { value: timeOfDay < 7 || timeOfDay > 17 ? 1.0 : 0.0 },
-    buildingCenter: { value: new THREE.Vector3(
-      parseFloat(buildingId.slice(0, 3)) || 0,
-      0,
-      parseFloat(buildingId.slice(3, 6)) || 0
-    )}
+    lightIntensity: { value: timeOfDay < 7 || timeOfDay > 17 ? 1.0 : 0.0 }
   }), [timeOfDay, buildingId])
   
   useFrame((state, delta) => {

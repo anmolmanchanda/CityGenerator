@@ -156,7 +156,7 @@ function BuildingAreaLights() {
   const { timeOfDay } = useAppStore()
   const lightsRef = useRef<THREE.Group>(null)
   
-  // Create building lights that turn on at dusk
+  // Create building lights that turn on at dusk (reduced for performance)
   const buildingLights = useMemo(() => {
     const lights: Array<{
       position: [number, number, number]
@@ -164,8 +164,8 @@ function BuildingAreaLights() {
       intensity: number
     }> = []
     
-    // Downtown core lighting
-    for (let i = 0; i < 50; i++) {
+    // Downtown core lighting (reduced from 50 to 20)
+    for (let i = 0; i < 20; i++) {
       const x = (Math.random() - 0.5) * 1000
       const z = (Math.random() - 0.5) * 1000
       const y = Math.random() * 300 + 50
@@ -173,12 +173,12 @@ function BuildingAreaLights() {
       lights.push({
         position: [x, y, z],
         color: '#FFE4B5', // Warm interior light
-        intensity: 0.5
+        intensity: 0.8
       })
     }
     
-    // Residential area lighting
-    for (let i = 0; i < 100; i++) {
+    // Residential area lighting (reduced from 100 to 30)
+    for (let i = 0; i < 30; i++) {
       const x = (Math.random() - 0.5) * 2000
       const z = (Math.random() - 0.5) * 2000
       const y = Math.random() * 50 + 10
@@ -186,7 +186,7 @@ function BuildingAreaLights() {
       lights.push({
         position: [x, y, z],
         color: '#FFEFD5', // Warmer residential light
-        intensity: 0.3
+        intensity: 0.6
       })
     }
     
@@ -232,12 +232,12 @@ function StreetLights() {
   const streetLightPositions = useMemo(() => {
     const positions: Array<[number, number, number]> = []
     
-    // Create a grid of street lights
-    for (let x = -2000; x <= 2000; x += 200) {
-      for (let z = -2000; z <= 2000; z += 200) {
+    // Create a reduced grid of street lights (every 400m instead of 200m)
+    for (let x = -2000; x <= 2000; x += 400) {
+      for (let z = -2000; z <= 2000; z += 400) {
         // Add some randomness to positions
-        const offsetX = (Math.random() - 0.5) * 50
-        const offsetZ = (Math.random() - 0.5) * 50
+        const offsetX = (Math.random() - 0.5) * 100
+        const offsetZ = (Math.random() - 0.5) * 100
         positions.push([x + offsetX, 15, z + offsetZ])
       }
     }

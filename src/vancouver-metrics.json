@@ -1,0 +1,73 @@
+{
+    "vancouver": {
+      "qualityOfLife": {
+        "overall": 72,
+        "environment": 80,
+        "economy": 68,
+        "social": 60,
+        "education": 80,
+        "healthcare": 52,
+        "governance": 63,
+        "mobility": 77,
+        "culture": 75
+      },
+      "districts": {
+        "downtown": {
+          "name": "Downtown",
+          "center": [-123.1207, 49.2827],
+          "population": 75000,
+          "medianIncome": 75000,
+          "buildingCount": 450
+        },
+        "kitsilano": {
+          "name": "Kitsilano",
+          "center": [-123.1684, 49.2684],
+          "population": 45000,
+          "medianIncome": 85000,
+          "buildingCount": 320
+        },
+        "eastVancouver": {
+          "name": "East Vancouver",
+          "center": [-123.0657, 49.2488],
+          "population": 95000,
+          "medianIncome": 55000,
+          "buildingCount": 680
+        },
+        "westEnd": {
+          "name": "West End",
+          "center": [-123.1376, 49.2855],
+          "population": 50000,
+          "medianIncome": 65000,
+          "buildingCount": 280
+        }
+      },
+      "cityStats": {
+        "totalPopulation": 675218,
+        "area": 115,
+        "established": 1886,
+        "timezone": "PST",
+        "elevation": 2,
+        "avgTemperature": {
+          "summer": 22,
+          "winter": 7
+        }
+      },
+      "landmarks": [
+        {
+          "name": "Canada Place",
+          "coordinates": [-123.1111, 49.2888],
+          "type": "landmark"
+        },
+        {
+          "name": "Science World",
+          "coordinates": [-123.1035, 49.2734],
+          "type": "landmark"
+        },
+        {
+          "name": "BC Place",
+          "coordinates": [-123.1119, 49.2768],
+          "type": "stadium"
+        }
+      ]
+    }
+  }
