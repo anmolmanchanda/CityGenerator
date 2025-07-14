@@ -6,6 +6,7 @@ import { Plane } from '@react-three/drei'
 import { useVancouverBuildings } from '@/lib/vancouverData'
 import { generateBuildingColor } from '@/utils'
 import { useAppStore } from '@/lib/store'
+import type { BuildingData } from '@/types'
 import LODManager, { PerformanceStats } from '../LODManager'
 
 // Building data structure for rendering
@@ -53,7 +54,7 @@ export default function VancouverCity() {
         id: building.id,
         position: building.position,
         scale: building.scale,
-        color: generateBuildingColor(building.type, building.height, building.id.charCodeAt(0)),
+        color: generateBuildingColor(building.type as BuildingData['type'] || 'residential', building.height, building.id.charCodeAt(0)),
         type: building.type,
         materialType,
         hasDetails

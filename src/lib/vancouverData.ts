@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react'
-import { logger } from '@/utils/logger'
+// Re-export the new GeoJSON-based Vancouver data system for compatibility
+export { useVancouverBuildings } from '@/hooks/useVancouverGeoData'
+
+// Legacy exports for backwards compatibility (disabled in favor of GeoJSON)
+// import { useState, useEffect } from 'react'
+// import { logger } from '@/utils/logger'
 
 // Fallback building data generator for when API fails
 const generateFallbackBuildings = (): ProcessedBuilding[] => {
@@ -326,62 +330,5 @@ export class VancouverBuildingService {
   }
 }
 
-// Hook for React components with fallback data
-export const useVancouverBuildings = () => {
-  const [buildings, setBuildings] = useState<ProcessedBuilding[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [usingFallback, setUsingFallback] = useState(false)
-
-  useEffect(() => {
-    const loadBuildings = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        setUsingFallback(false)
-        
-        // Try to fetch real data first
-        const allBuildings: ProcessedBuilding[] = []
-        const chunkSize = 1000
-        let offset = 0
-        let hasMore = true
-        
-        while (hasMore && allBuildings.length < 2000) { // Reduced limit for better performance
-          const response = await VancouverBuildingService.fetchBuildingData(chunkSize, offset)
-          const processedBuildings = VancouverBuildingService.processBuildings(response)
-          
-          allBuildings.push(...processedBuildings)
-          
-          hasMore = response.records.length === chunkSize
-          offset += chunkSize
-          
-          // Update progress
-          logger.log(`Loaded ${allBuildings.length} real buildings...`)
-        }
-        
-        if (allBuildings.length > 0) {
-          setBuildings(allBuildings)
-          logger.log(`Successfully loaded ${allBuildings.length} real Vancouver buildings`)
-        } else {
-          throw new Error('No buildings received from API')
-        }
-        
-      } catch (err) {
-        logger.warn('Failed to load real building data, using fallback:', err)
-        setError('Using fallback building data due to API unavailability')
-        setUsingFallback(true)
-        
-        // Generate fallback buildings
-        const fallbackBuildings = generateFallbackBuildings()
-        setBuildings(fallbackBuildings)
-        logger.log(`Generated ${fallbackBuildings.length} fallback buildings for Vancouver`)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadBuildings()
-  }, [])
-
-  return { buildings, loading, error, usingFallback }
-}
+// Legacy hook disabled - using new GeoJSON system
+// export const useVancouverBuildings = () => { ... }

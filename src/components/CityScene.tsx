@@ -13,6 +13,7 @@ import {
 import OptimizedPostProcessing, { PostProcessingDebug } from './OptimizedPostProcessing'
 import OptimizedAtmosphericEffects from './OptimizedAtmosphericEffects'
 import CinematicLighting from './CinematicLighting'
+import HDREnvironmentSystem, { HDREnvironmentPreloader, DynamicSkyFallback } from './HDREnvironmentSystem'
 import VancouverCity from './city/VancouverCity'
 import CinematicCamera from './city/CinematicCamera'
 import DynamicLighting from './city/DynamicLighting'
@@ -162,7 +163,19 @@ export default function CityScene({
         <DynamicLighting />
       </Suspense>
       
-      {/* Sky */}
+      {/* HDR Environment System */}
+      <Suspense fallback={null}>
+        <HDREnvironmentPreloader />
+        <HDREnvironmentSystem 
+          enabled={postProcessingSettings.enabled}
+          intensity={postProcessingSettings.quality === 'ultra' ? 1.4 : 
+                    postProcessingSettings.quality === 'high' ? 1.2 : 
+                    postProcessingSettings.quality === 'medium' ? 1.0 : 0.8}
+          backgroundBlur={0.1}
+        />
+      </Suspense>
+      
+      {/* Sky Fallback */}
       <Sky
         distance={450000}
         sunPosition={[100, 20, 100]}
