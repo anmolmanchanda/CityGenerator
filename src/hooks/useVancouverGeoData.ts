@@ -169,44 +169,143 @@ export function useVancouverBuildings() {
   }
 }
 
-// Generate fallback building data if GeoJSON fails
+// Generate comprehensive Vancouver building data with realistic layout
 function generateFallbackBuildings(): ParsedBuilding[] {
   const buildings: ParsedBuilding[] = []
-  const buildingCount = 300 // Emergency reduction for performance
   
-  for (let i = 0; i < buildingCount; i++) {
-    const x = (Math.random() - 0.5) * 8000
-    const z = (Math.random() - 0.5) * 8000
+  // Downtown core - High density, tall buildings
+  generateBuildingCluster(buildings, 'downtown', 0, 0, 1500, 400, {
+    count: 200,
+    heightRange: [50, 300],
+    widthRange: [20, 60],
+    depthRange: [20, 60],
+    density: 0.7,
+    typeDistribution: { office: 0.6, commercial: 0.3, mixed: 0.1 }
+  })
+  
+  // West End - Mid-rise residential
+  generateBuildingCluster(buildings, 'westend', -800, 600, 800, 600, {
+    count: 300,
+    heightRange: [25, 80],
+    widthRange: [15, 40],
+    depthRange: [15, 40],
+    density: 0.6,
+    typeDistribution: { residential: 0.7, commercial: 0.2, mixed: 0.1 }
+  })
+  
+  // Yaletown - Mixed development
+  generateBuildingCluster(buildings, 'yaletown', 400, -400, 600, 400, {
+    count: 180,
+    heightRange: [30, 120],
+    widthRange: [18, 45],
+    depthRange: [18, 45],
+    density: 0.5,
+    typeDistribution: { residential: 0.4, commercial: 0.3, office: 0.3 }
+  })
+  
+  // Kitsilano - Low-rise residential
+  generateBuildingCluster(buildings, 'kitsilano', -1200, -800, 1000, 600, {
+    count: 400,
+    heightRange: [8, 35],
+    widthRange: [12, 25],
+    depthRange: [12, 25],
+    density: 0.4,
+    typeDistribution: { residential: 0.8, commercial: 0.2 }
+  })
+  
+  // Commercial Drive area
+  generateBuildingCluster(buildings, 'commercial', 1200, 800, 800, 800, {
+    count: 350,
+    heightRange: [10, 45],
+    widthRange: [14, 30],
+    depthRange: [14, 30],
+    density: 0.5,
+    typeDistribution: { residential: 0.6, commercial: 0.4 }
+  })
+  
+  // Richmond suburbs
+  generateBuildingCluster(buildings, 'richmond', 0, -2000, 2000, 800, {
+    count: 600,
+    heightRange: [6, 25],
+    widthRange: [10, 20],
+    depthRange: [10, 20],
+    density: 0.3,
+    typeDistribution: { residential: 0.9, commercial: 0.1 }
+  })
+  
+  // Burnaby heights
+  generateBuildingCluster(buildings, 'burnaby', 1800, 0, 1200, 1200, {
+    count: 450,
+    heightRange: [8, 40],
+    widthRange: [12, 28],
+    depthRange: [12, 28],
+    density: 0.4,
+    typeDistribution: { residential: 0.7, commercial: 0.3 }
+  })
+  
+  return buildings.sort((a, b) => b.height - a.height)
+}
+
+// Helper function to generate building clusters for different Vancouver neighborhoods
+function generateBuildingCluster(
+  buildings: ParsedBuilding[], 
+  prefix: string, 
+  centerX: number, 
+  centerZ: number, 
+  width: number, 
+  depth: number, 
+  config: {
+    count: number
+    heightRange: [number, number]
+    widthRange: [number, number]
+    depthRange: [number, number]
+    density: number
+    typeDistribution: { [key: string]: number }
+  }
+) {
+  const { count, heightRange, widthRange, depthRange, density, typeDistribution } = config
+  
+  for (let i = 0; i < count; i++) {
+    // Grid-based placement with some randomness
+    const gridX = (i % Math.sqrt(count)) / Math.sqrt(count)
+    const gridZ = Math.floor(i / Math.sqrt(count)) / Math.sqrt(count)
     
-    // Distance from center affects building height
-    const distanceFromCenter = Math.sqrt(x * x + z * z)
-    const heightMultiplier = Math.max(0.2, 1 - distanceFromCenter / 4000)
+    const x = centerX + (gridX - 0.5) * width + (Math.random() - 0.5) * 100
+    const z = centerZ + (gridZ - 0.5) * depth + (Math.random() - 0.5) * 100
     
-    const height = Math.random() * 200 * heightMultiplier + 10
-    const width = Math.random() * 30 + 10
-    const depth = Math.random() * 30 + 10
+    // Skip some buildings based on density
+    if (Math.random() > density) continue
     
+    const height = heightRange[0] + Math.random() * (heightRange[1] - heightRange[0])
+    const buildingWidth = widthRange[0] + Math.random() * (widthRange[1] - widthRange[0])
+    const buildingDepth = depthRange[0] + Math.random() * (depthRange[1] - depthRange[0])
+    
+    // Determine building type based on distribution
     let type = 'residential'
-    if (height > 100) type = 'office'
-    else if (height > 50) type = 'commercial'
-    else if (width > 40 || depth > 40) type = 'industrial'
+    const rand = Math.random()
+    let cumulative = 0
+    for (const [buildingType, probability] of Object.entries(typeDistribution)) {
+      cumulative += probability
+      if (rand <= cumulative) {
+        type = buildingType
+        break
+      }
+    }
     
     buildings.push({
-      id: `fallback_${i}`,
+      id: `${prefix}_${i}`,
       position: [x, height / 2, z],
-      scale: [width, height, depth],
+      scale: [buildingWidth, height, buildingDepth],
       type,
       height,
       footprint: [
-        [x - width/2, z - depth/2],
-        [x + width/2, z - depth/2],
-        [x + width/2, z + depth/2],
-        [x - width/2, z + depth/2]
+        [x - buildingWidth/2, z - buildingDepth/2],
+        [x + buildingWidth/2, z - buildingDepth/2],
+        [x + buildingWidth/2, z + buildingDepth/2],
+        [x - buildingWidth/2, z + buildingDepth/2]
       ],
       roofType: height > 50 ? 'Flat' : 'Pitched',
       orientation: Math.random() * Math.PI * 2
     })
   }
-  
-  return buildings.sort((a, b) => b.height - a.height)
 }

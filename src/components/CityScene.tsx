@@ -178,8 +178,18 @@ export default function CityScene({
         mieDirectionalG={0.8}
       />
 
-      {/* Simple Camera Controls */}
-      <OrbitControls enablePan enableZoom enableRotate />
+      {/* Enhanced Camera Controls - Full 360 rotation */}
+      <OrbitControls 
+        enablePan={true}
+        enableZoom={true} 
+        enableRotate={true}
+        enableDamping={true}
+        dampingFactor={0.05}
+        minDistance={50}
+        maxDistance={5000}
+        maxPolarAngle={Math.PI} // Allow full rotation including under the ground
+        minPolarAngle={0}
+      />
 
       {/* Main City */}
       <Suspense fallback={null}>
